@@ -4,6 +4,7 @@
     <button
       class="px-4 py-2 rounded text-gray-50 bg-green-400 hover:bg-green-300 duration-200"
       @click="toggleModalCreate"
+      v-if="pagination.current_page == 1"
     >
       Add
     </button>
@@ -26,7 +27,9 @@
             v-for="(student, index) in students"
             :key="student.id"
           >
-            <td class="py-5 px-8 text-gray-900">{{ index + 1 }}</td>
+            <td class="py-5 px-8 text-gray-900">
+              {{ pagination.from + index }}
+            </td>
             <td class="py-5 px-8 text-gray-900">{{ student.nama }}</td>
             <td class="py-5 px-8 text-gray-900">{{ student.kelas }}</td>
             <td class="flex justify-around items-center py-5 px-8">
@@ -61,6 +64,22 @@
       @closeModal="toggleModalEdit"
       v-if="showModalEdit"
     />
+    <div class="flex">
+      <div v-for="(link, index) in pagination.links" :key="index">
+        <button
+          v-if="link.url"
+          class="px-4 py-2 border"
+          :class="[
+            { 'bg-blue-700 text-gray-100': link.active },
+            { 'text-gray-600': link.active == false },
+          ]"
+          :disabled="link.active"
+          @click="buttonControl(link.url)"
+        >
+          <span v-html="link.label"></span>
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -76,6 +95,7 @@ export default {
       students: [],
       student: {},
       studentId: "",
+      pagination: {},
       showModalCreate: false,
       showModalEdit: false,
     };
@@ -102,6 +122,7 @@ export default {
         .then((data) => {
           console.log(data.message);
           this.students = data.data.data;
+          this.pagination = data.data;
         });
     },
     toggleModalCreate() {
@@ -109,10 +130,11 @@ export default {
     },
     addNewStudent(data) {
       if (data.id) {
-        this.students.pop();
-        this.students.push(data);
+        this.students.shift();
+        this.students.unshift(data);
+        this.students.length >= 5 ? this.students.pop() : "";
       } else {
-        this.students.push(data);
+        this.students.unshift(data);
       }
     },
     toggleModalEdit(id) {
@@ -122,6 +144,15 @@ export default {
     editStudent(data) {
       const dataIndex = this.students.findIndex((i) => i.id == data.id);
       this.students.splice(dataIndex, 1, data);
+    },
+    buttonControl(url) {
+      this.students = [];
+      fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+          this.students = data.data.data;
+          this.pagination = data.data;
+        });
     },
   },
   mounted() {
