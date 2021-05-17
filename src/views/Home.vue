@@ -1,36 +1,43 @@
 <template>
   <div class="container p-5 mx-auto my-5">
-    <h1 class="text-3xl font-bold my-3">Student List</h1>
-    <router-link
-      :to="{ name: 'Create' }"
-      class="btn bg-green-400 hover:bg-green-300 duration-200"
+    <h1 class="text-3xl font-bold my-3">Daftar Murid</h1>
+    <button
+      class="px-4 py-2 rounded text-gray-50 bg-green-400 hover:bg-green-300 duration-200"
+      @click="toggleModalCreate"
     >
       Add
-    </router-link>
-    <div class="border border-gray-800 rounded p-5 my-3 overflow-auto">
-      <table class="w-full" v-if="students.length">
-        <thead class="border-b border-gray-800">
+    </button>
+    <div
+      class="container mx-auto border border-gray-300 rounded my-3"
+      v-if="students.length"
+    >
+      <table class="w-full" id="table">
+        <thead class="border-b border-gray-300">
           <tr>
-            <th class="px-3 py-2">#</th>
-            <td class="px-3 py-2">Nama</td>
-            <td class="px-3 py-2">Kelas</td>
-            <td class="px-3 py-2 text-center">Aksi</td>
+            <th class="py-3 px-8 text-gray-700 text-left">#</th>
+            <th class="py-3 px-8 text-gray-700 text-left">Nama</th>
+            <th class="py-3 px-8 text-gray-700 text-left">Kelas</th>
+            <th class="py-3 px-8 text-gray-700 text-center">Aksi</th>
           </tr>
         </thead>
-        <tbody class="mt-10">
-          <tr v-for="(student, index) in students" :key="student.id">
-            <td class="table-col text-center">{{ index + 1 }}</td>
-            <td class="table-col">{{ student.nama }}</td>
-            <td class="table-col">{{ student.kelas }}</td>
-            <td class="table-col flex justify-center">
+        <tbody>
+          <tr
+            class="hover:bg-gray-200"
+            v-for="(student, index) in students"
+            :key="student.id"
+          >
+            <td class="py-5 px-8 text-gray-900">{{ index + 1 }}</td>
+            <td class="py-5 px-8 text-gray-900">{{ student.nama }}</td>
+            <td class="py-5 px-8 text-gray-900">{{ student.kelas }}</td>
+            <td class="flex justify-around items-center py-5 px-8">
               <button
-                class="btn bg-yellow-400 hover:bg-yellow-300 duration-200"
-                @click="editModal(student)"
+                class="px-3 py-1 bg-yellow-400 hover:bg-yellow-300 rounded text-gray-50"
+                @click="toggleModalEdit(student.id)"
               >
                 Edit
               </button>
               <button
-                class="btn bg-red-400 hover:bg-red-300 duration-200"
+                class="px-3 py-1 bg-red-400 hover:bg-red-300 rounded text-gray-50"
                 @click="deleteStudent(student.id)"
               >
                 Delete
@@ -39,29 +46,41 @@
           </tr>
         </tbody>
       </table>
-      <h1 v-else class="text-3xl mx-auto py-3 text-center">
-        Data Tidak Tersedia
-      </h1>
     </div>
-    <Modal v-if="showModal" :student="student" @toggleModal="toggleModal" />
-    <Create @nStudent="nStudent" v-if="false" />
+    <ShimmerTable v-else />
+    <ModalCreate
+      :headerTitle="'Tambah Murid'"
+      @closeModal="toggleModalCreate"
+      @newStudent="addNewStudent"
+      v-if="showModalCreate"
+    />
+    <ModalEdit
+      :headerTitle="'Edit Murid'"
+      :studentId="studentId"
+      @editStudent="editStudent"
+      @closeModal="toggleModalEdit"
+      v-if="showModalEdit"
+    />
   </div>
 </template>
 
 <script>
-import Modal from "../components/Modal.vue";
-import Create from "../views/Create.vue";
+import ShimmerTable from "../components/shimmer/ShimmerTable.vue";
+import ModalCreate from "../components/modal/ModalCreate.vue";
+import ModalEdit from "../components/modal/ModalEdit.vue";
 
 export default {
   name: "Home",
   data() {
     return {
       students: [],
-      showModal: false,
       student: {},
+      studentId: "",
+      showModalCreate: false,
+      showModalEdit: false,
     };
   },
-  components: { Modal, Create },
+  components: { ShimmerTable, ModalCreate, ModalEdit },
   methods: {
     deleteStudent(id) {
       const student = { id: id };
@@ -75,24 +94,34 @@ export default {
         body: JSON.stringify(student),
       })
         .then((res) => res.json())
-        .then((data) => {
-          console.log(data.message);
-        });
+        .then((data) => {});
     },
     fetchStudent() {
       fetch("https://sarunk-vue-api.herokuapp.com/api/student")
         .then((res) => res.json())
         .then((data) => {
           console.log(data.message);
-          this.students = data.data;
+          this.students = data.data.data;
         });
     },
-    editModal(data) {
-      this.showModal = true;
-      this.student = data;
+    toggleModalCreate() {
+      this.showModalCreate = !this.showModalCreate;
     },
-    toggleModal() {
-      this.showModal = false;
+    addNewStudent(data) {
+      if (data.id) {
+        this.students.pop();
+        this.students.push(data);
+      } else {
+        this.students.push(data);
+      }
+    },
+    toggleModalEdit(id) {
+      this.showModalEdit = !this.showModalEdit;
+      this.studentId = id;
+    },
+    editStudent(data) {
+      const dataIndex = this.students.findIndex((i) => i.id == data.id);
+      this.students.splice(dataIndex, 1, data);
     },
   },
   mounted() {
@@ -100,16 +129,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-h1,
-p {
-  color: #21094e;
-}
-.table-col {
-  @apply px-3 py-2;
-}
-.btn {
-  @apply px-3 py-1 rounded text-gray-50 mx-4;
-}
-</style>
