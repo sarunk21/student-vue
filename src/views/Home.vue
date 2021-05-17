@@ -7,7 +7,7 @@
     >
       Add
     </router-link>
-    <div class="border border-gray-800 rounded p-5 my-3">
+    <div class="border border-gray-800 rounded p-5 my-3 overflow-auto">
       <table class="w-full" v-if="students.length">
         <thead class="border-b border-gray-800">
           <tr>
