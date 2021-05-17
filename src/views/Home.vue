@@ -8,10 +8,10 @@
       Add
     </button>
     <div
-      class="container mx-auto border border-gray-300 rounded my-3"
+      class="container mx-auto border border-gray-300 rounded my-3 overflow-auto"
       v-if="students.length"
     >
-      <table class="w-full" id="table">
+      <table class="w-full">
         <thead class="border-b border-gray-300">
           <tr>
             <th class="py-3 px-8 text-gray-700 text-left">#</th>
