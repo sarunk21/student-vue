@@ -1,4 +1,4 @@
-# 6.sarun-students
+# sarunk-students
 
 ## Project setup
 ```
